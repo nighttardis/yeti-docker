@@ -1,0 +1,82 @@
+---
+
+version: '3'
+services:
+  yeti:
+    image: nighttardis/yeti-docker:latest
+    ports:
+      - "8080:8080"
+    links:
+      - redis
+      - mongodb
+    command: ['docker-entrypoint.sh', 'uwsgi-http']
+    restart: always
+    depends_on:
+      - redis
+      - mongodb
+  yeti-feeds:
+    image: nighttardis/yeti-docker:latest
+    links:
+      - redis
+      - mongodb
+    command: ['docker-entrypoint.sh', 'feeds']
+    restart: always
+    depends_on:
+      - redis
+      - mongodb
+      - yeti
+    environment:
+      - TLDEXTRACT_CACHE=/tmp/tldextract.cache
+  yeti-analytics:
+    image: nighttardis/yeti-docker:latest
+    links:
+      - redis
+      - mongodb
+    command: ['docker-entrypoint.sh', 'analytics']
+    restart: always
+    depends_on:
+      - redis
+      - mongodb
+      - yeti
+    environment:
+      - TLDEXTRACT_CACHE=/tmp/tldextract.cache
+  yeti-beat:
+    image: nighttardis/yeti-docker:latest
+    links:
+      - redis
+      - mongodb
+    command: ['docker-entrypoint.sh', 'beat']
+    restart: always
+    depends_on:
+      - redis
+      - mongodb
+      - yeti
+  yeti-exports:
+    image: nighttardis/yeti-docker:latest
+    links:
+      - redis
+      - mongodb
+    command: ['docker-entrypoint.sh', 'exports']
+    restart: always
+    depends_on:
+      - redis
+      - mongodb
+      - yeti
+  yeti-oneshot:
+    image: nighttardis/yeti-docker:latest
+    links:
+      - redis
+      - mongodb
+    command: ['docker-entrypoint.sh', 'oneshot']
+    restart: always
+    depends_on:
+      - redis
+      - mongodb
+      - yeti
+  redis:
+    image: redis:latest
+  mongodb:
+    image: mongo:latest
+    environment:
+      - MONGO_LOG_DIR=/dev/null
+    command: mongod
